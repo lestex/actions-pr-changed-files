@@ -56,16 +56,32 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.changed-files.outputs.files }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Run the action
-        id: files
+        id: changed-files
         uses: ./
 
       - name: Print steps context output
         run: |
-          echo ${{ steps.files.outputs.files }}
-          echo ${{ steps.files.outputs.sha }}
-          echo ${{ steps.files.outputs.msg }}
+          echo ${{ steps.changed-files.outputs.files }}
+          echo ${{ steps.changed-files.outputs.sha }}
+          echo ${{ steps.changed-files.outputs.msg }}
+          
+  test-matrix:
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJSON(needs.test.outputs.files) }}
+        
+    steps:
+      - name: Echo file from matrix
+        run:
+          echo ${{ matrix.file }}
+    
