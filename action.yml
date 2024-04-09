@@ -1,11 +1,11 @@
 name: Get changed files for a pull request
 description: Get all of the files changed in a pull request.
-author: Priceline.com
+author: 'Andrey Larin <lestex@gmail.com>'
 branding:
   icon: file
   color: purple
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
 inputs:
   token:
