@@ -181,6 +181,7 @@ async function run(): Promise<void> {
 
         // For backwards-compatibility
         core.setOutput('deleted', removedFormatted)
+
     } catch (error) {
         let errorMessage = 'Failed'
         if (error instanceof Error) {
