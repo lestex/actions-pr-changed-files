@@ -37,7 +37,7 @@ outputs:
       The list of files changed in a pull request.
   sha:
     description: >
-      Last commit SHA in a pull request.
+      Most recent commit SHA in a pull request.
   msg:
     description: >
-      Last commit message in a pull request.
+      Most recent commit message in a pull request.
