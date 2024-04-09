@@ -38,98 +38,58 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
-const path_1 = __importDefault(__nccwpck_require__(1017));
-function extensions(filter) {
-    const tempExtList = filter.split(',');
-    const extList = [];
-    for (const ext of tempExtList) {
-        if (!ext.startsWith('.')) {
-            extList.push(`.${ext}`);
-            continue;
-        }
-        extList.push(ext);
-    }
-    return extList;
-}
-function filterFilesByExtension(files, ext) {
-    const filesFiltered = files.filter(file => ext.includes(path_1.default.extname(file).toLowerCase()));
-    return filesFiltered;
-}
 function run() {
-    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Get inputs
             const token = core.getInput('token', { required: true });
-            const repository = core.getInput('repository', { required: true });
-            const filter = core.getInput('filter', { required: true });
-            const extList = extensions(filter);
+            const repo = core.getInput('repository', { required: true });
+            const pr_number = core.getInput('pr-number', { required: true });
+            const page = core.getInput('per-page', { required: true });
+            let owner = core.getInput('owner');
+            owner = owner ? owner : github_1.context.repo.owner;
+            let encoding = core.getInput('result-encoding');
+            encoding = encoding ? encoding : 'json';
             // Create GitHub client with the token.
-            const client = (0, github_1.getOctokit)(token);
+            const octokit = (0, github_1.getOctokit)(token);
             // Debug the inputs.
-            core.info(`Repository: ${repository}`);
-            core.info(`Filter: ${filter}`);
-            core.info(`Extensions: ${extList}`);
-            // Get event name.
-            const eventName = github_1.context.eventName;
-            core.info(`Event name: ${eventName}`);
-            // Define the base and head commits to be extracted from the payload.
-            let base = '';
-            let head = '';
-            switch (eventName) {
-                case 'pull_request':
-                    base = (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
-                    head = (_d = (_c = github_1.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
-                    break;
-                case 'push':
-                    base = github_1.context.payload.before;
-                    head = github_1.context.payload.after;
-                    break;
-                default:
-                    core.setFailed(`This action only supports pull requests and pushes, ${github_1.context.eventName} events are not supported.`);
-            }
-            // Log the base and head commits
-            core.info(`Base commit: ${base}`);
-            core.info(`Head commit: ${head}`);
-            // Ensure that the base and head properties are set on the payload.
-            if (!base || !head) {
-                core.setFailed(`The base and head commits are missing from the payload for this ${github_1.context.eventName} event`);
-            }
-            // Use GitHub's compare two commits API.
-            // https://developer.github.com/v3/repos/commits/#compare-two-commits
-            const response = yield client.rest.repos.compareCommits({
-                base,
-                head,
-                owner: github_1.context.repo.owner,
-                repo: github_1.context.repo.repo
+            core.info(`Repository: ${repo}`);
+            core.info(`Owner: ${owner}`);
+            core.info(`Pull request number: ${pr_number}`);
+            core.info(`Per page: ${page}`);
+            const pull_number = parseInt(pr_number);
+            const per_page = parseInt(page);
+            // Use GitHub's API to get files changed in PR.
+            // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files
+            const response = yield octokit.paginate(octokit.rest.pulls.listFiles, {
+                owner,
+                repo,
+                pull_number,
+                per_page
             });
-            // Ensure that the request was successful.
-            if (response.status !== 200) {
-                core.setFailed(`The GitHub API for comparing the base and head commits for this ${github_1.context.eventName} event returned ${response.status}, expected 200`);
-            }
-            // Ensure that the head commit is ahead of the base commit.
-            if (response.data.status !== 'ahead') {
-                core.setFailed(`The head commit for this ${github_1.context.eventName} event is not ahead of the base commit`);
-            }
-            // Get the changed files from the response payload.
-            const files = response.data.files || [];
             const allFiles = [];
-            for (const file of files) {
+            for (const file of response) {
                 const filename = file.filename;
                 allFiles.push(filename);
             }
-            // Filter files by extension
-            const filteredFiles = filterFilesByExtension(allFiles, extList);
-            // Format the arrays of changed files.
-            const allFormatted = JSON.stringify(filteredFiles);
+            let output;
+            switch (encoding) {
+                case 'json':
+                    output = JSON.stringify(allFiles);
+                    break;
+                case 'string':
+                    output = String(allFiles);
+                    break;
+                default:
+                    throw new Error('"result-encoding" must be either "string" or "json"');
+            }
+            // debug length
+            core.info(`Number of files changed in pull request: ${allFiles.length}`);
             // Set step output context.
-            core.setOutput('files', allFormatted);
+            core.setOutput('files', output);
         }
         catch (error) {
             let errorMessage = 'Failed';

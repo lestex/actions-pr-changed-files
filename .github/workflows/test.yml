@@ -60,15 +60,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - id: files
-        name: Run the action
+      - name: Run the action
+        id: files
         uses: ./
 
       - name: Print steps context output
         run: |
           echo ${{ steps.files.outputs.files }}
-
-      - name: Print shas
-        run: |
-          echo "Base: ${{ github.event.pull_request.base.sha }}"
-          echo "Base: ${{ github.event.pull_request.head.sha }}"
