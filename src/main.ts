@@ -92,7 +92,7 @@ async function run(): Promise<void> {
         if (error instanceof Error) {
             errorMessage = error.message
         }
-        core.info(errorMessage)
+        core.setFailed(errorMessage)
     }
 }
 
