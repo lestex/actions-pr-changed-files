@@ -27,6 +27,26 @@ async function run(): Promise<void> {
         const pull_number: number = parseInt(pr_number)
         const per_page: number = parseInt(page)
 
+        // a call to Github API to collect PR data
+        const sha_resp = await octokit.rest.pulls.get({
+            owner,
+            repo,
+            pull_number
+        })
+
+        const sha = sha_resp.data.head.sha
+        core.info(`Most recent commit sha: ${sha}`)
+
+        // get last commit msg
+        const msg_resp = await octokit.rest.repos.getCommit({
+            owner,
+            repo,
+            ref: sha
+        })
+
+        const msg = msg_resp.data.commit.message
+        core.info(`Most recent commit message: ${msg}`)
+
         // Use GitHub's API to get files changed in PR.
         // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files
         const response = await octokit.paginate(octokit.rest.pulls.listFiles, {
@@ -61,6 +81,8 @@ async function run(): Promise<void> {
         core.info(`Number of files changed in pull request: ${allFiles.length}`)
 
         // Set step output context.
+        core.setOutput('sha', sha)
+        core.setOutput('msg', msg)
         core.setOutput('files', output)
     } catch (error) {
         let errorMessage = 'Failed'
