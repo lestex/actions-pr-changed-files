@@ -12,8 +12,6 @@ async function run(): Promise<void> {
         let owner = core.getInput('owner')
         owner = owner ? owner : context.repo.owner
 
-        core.info(`Context: ${JSON.stringify(context)}`)
-
         let encoding = core.getInput('result-encoding')
         encoding = encoding ? encoding : 'json'
 
@@ -47,7 +45,7 @@ async function run(): Promise<void> {
         })
 
         const msg = msg_resp.data.commit.message
-        core.info(`Most recent commit message: ${msg}`)
+        core.info(`Most recent commit message: "${msg}"`)
 
         // Use GitHub's API to get files changed in PR.
         // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files

@@ -51,7 +51,6 @@ function run() {
             const page = core.getInput('per-page', { required: true });
             let owner = core.getInput('owner');
             owner = owner ? owner : github_1.context.repo.owner;
-            core.info(`Context: ${JSON.stringify(github_1.context)}`);
             let encoding = core.getInput('result-encoding');
             encoding = encoding ? encoding : 'json';
             // Create GitHub client with the token.
@@ -78,7 +77,7 @@ function run() {
                 ref: sha
             });
             const msg = msg_resp.data.commit.message;
-            core.info(`Most recent commit message: ${msg}`);
+            core.info(`Most recent commit message: "${msg}"`);
             // Use GitHub's API to get files changed in PR.
             // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files
             const files_resp = yield octokit.paginate(octokit.rest.pulls.listFiles, {
