@@ -62,16 +62,32 @@ function run() {
             core.info(`Per page: ${page}`);
             const pull_number = parseInt(pr_number);
             const per_page = parseInt(page);
+            // a call to Github API to collect PR data
+            const sha_resp = yield octokit.rest.pulls.get({
+                owner,
+                repo,
+                pull_number
+            });
+            const sha = sha_resp.data.head.sha;
+            core.info(`Most recent commit sha: ${sha}`);
+            // get last commit msg
+            const msg_resp = yield octokit.rest.repos.getCommit({
+                owner,
+                repo,
+                ref: sha
+            });
+            const msg = msg_resp.data.commit.message;
+            core.info(`Most recent commit message: ${msg}`);
             // Use GitHub's API to get files changed in PR.
             // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files
-            const response = yield octokit.paginate(octokit.rest.pulls.listFiles, {
+            const files_resp = yield octokit.paginate(octokit.rest.pulls.listFiles, {
                 owner,
                 repo,
                 pull_number,
                 per_page
             });
             const allFiles = [];
-            for (const file of response) {
+            for (const file of files_resp) {
                 const filename = file.filename;
                 allFiles.push(filename);
             }
@@ -89,6 +105,8 @@ function run() {
             // debug length
             core.info(`Number of files changed in pull request: ${allFiles.length}`);
             // Set step output context.
+            core.setOutput('sha', sha);
+            core.setOutput('msg', msg);
             core.setOutput('files', output);
         }
         catch (error) {

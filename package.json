@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alarinepam/get-changed-files.git"
+    "url": "git+https://github.com/pcln/actions-pr-changed-files.git"
   },
   "keywords": [
     "actions",

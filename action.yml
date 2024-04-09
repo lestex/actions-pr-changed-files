@@ -25,13 +25,19 @@ inputs:
     required: true
     default: ${{ github.event.number }}
   per-page:
-    description: Number of items per pge in API call
+    description: Number of items per page in API call.
     required: true
     default: '100'
   result-encoding:
-    description: Either "string" or "json" (default "json")—how the result will be encoded
+    description: Either "string" or "json" how the result will be encoded.
     default: json
 outputs:
   files:
     description: >
       The list of files changed in a pull request.
+  sha:
+    description: >
+      Most recent commit SHA in a pull request.
+  msg:
+    description: >
+      Most recent commit message in a pull request.
