@@ -1,5 +1,5 @@
-name: Get All Changed Files
-description: Get all of the files changed/modified in a pull request or push's commits.
+name: Get changed files for a pull request
+description: Get all of the files changed in a pull request.
 author: Priceline.com
 branding:
   icon: file
@@ -17,11 +17,21 @@ inputs:
     description: Github repository
     default: ${{ github.event.repository.name }}
     required: true
-  filter:
-    description: File extentions to filter
+  owner:
+    description: Github repository owner
+    required: false
+  pr-number:
+    description: Pull request number
     required: true
-    default: 'yml,tf'
+    default: ${{ github.event.number }}
+  per-page:
+    description: Number of items per pge in API call
+    required: true
+    default: '100'
+  result-encoding:
+    description: Either "string" or "json" (default "json")—how the result will be encoded
+    default: json
 outputs:
   files:
     description: >
-      The list of files changed in PR.
+      The list of files changed in a pull request.

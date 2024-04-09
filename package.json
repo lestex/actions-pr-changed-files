@@ -1,8 +1,8 @@
 {
-  "name": "action-filter-files",
+  "name": "action-changed-files",
   "version": "0.1.0",
   "private": true,
-  "description": "Action to filter files in PR.",
+  "description": "Action to get file changed in pull request.",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
