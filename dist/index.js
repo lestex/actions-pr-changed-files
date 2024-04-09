@@ -80,14 +80,14 @@ function run() {
             core.info(`Most recent commit message: ${msg}`);
             // Use GitHub's API to get files changed in PR.
             // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files
-            const response = yield octokit.paginate(octokit.rest.pulls.listFiles, {
+            const files_resp = yield octokit.paginate(octokit.rest.pulls.listFiles, {
                 owner,
                 repo,
                 pull_number,
                 per_page
             });
             const allFiles = [];
-            for (const file of response) {
+            for (const file of files_resp) {
                 const filename = file.filename;
                 allFiles.push(filename);
             }
