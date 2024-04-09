@@ -1,30 +1,51 @@
 import * as core from '@actions/core'
 import {context, getOctokit} from '@actions/github'
+import path from 'path'
 
-type Format = 'spaced' | 'json'
-type FileStatus = 'added' | 'modified' | 'removed' | 'renamed'
+function extensions(filter: string): string[] {
+    const tempExtList = filter.split(',')
+    const extList: string[] = []
+
+    for (const ext of tempExtList) {
+        if (!ext.startsWith('.')) {
+            extList.push(`.${ext}`)
+            continue
+        }
+        extList.push(ext)
+    }
+    return extList
+}
+
+function filterFilesByExtension(files: string[], ext: string[]): string[] {
+    const filesFiltered = files.filter(file =>
+        ext.includes(path.extname(file).toLowerCase())
+    )
+    return filesFiltered
+}
 
 async function run(): Promise<void> {
     try {
-        // Create GitHub client with the token.
+        // Get inputs
         const token = core.getInput('token', {required: true})
+        const repository = core.getInput('repository', {required: true})
+        const filter = core.getInput('filter', {required: true})
+        const extList = extensions(filter)
+
+        // Create GitHub client with the token.
         const client = getOctokit(token)
-        const format = core.getInput('format', {required: true}) as Format
 
-        // Ensure that the format parameter is set properly.
-        if (format !== 'spaced' && format !== 'json') {
-            core.setFailed(`Format must be one of 'spaced' or 'json', got '${format}'`)
-        }
-
-        // Debug log the payload.
-        core.info(`Payload keys: ${Object.keys(context.payload)}`)
+        // Debug the inputs.
+        core.info(`Repository: ${repository}`)
+        core.info(`Filter: ${filter}`)
+        core.info(`Extensions: ${extList}`)
 
         // Get event name.
         const eventName = context.eventName
+        core.info(`Event name: ${eventName}`)
 
         // Define the base and head commits to be extracted from the payload.
-        let base: string | undefined
-        let head: string | undefined
+        let base = ''
+        let head = ''
 
         switch (eventName) {
             case 'pull_request':
@@ -50,10 +71,6 @@ async function run(): Promise<void> {
             core.setFailed(
                 `The base and head commits are missing from the payload for this ${context.eventName} event`
             )
-
-            // // To satisfy TypeScript, even though this is unreachable.
-            base = ''
-            head = ''
         }
 
         // Use GitHub's compare two commits API.
@@ -81,100 +98,21 @@ async function run(): Promise<void> {
 
         // Get the changed files from the response payload.
         const files = response.data.files || []
-        const all = [] as string[]
-        const added = [] as string[]
-        const modified = [] as string[]
-        const removed = [] as string[]
-        const renamed = [] as string[]
-        const addedModified = [] as string[]
+        const allFiles = [] as string[]
 
         for (const file of files) {
             const filename = file.filename
-            // If we're using the 'space-delimited' format and any of the filenames have a space in them,
-            // then fail the step.
-            if (format === 'spaced' && filename.includes(' ')) {
-                core.setFailed(
-                    `One of your files includes a space. Consider using a different output format or removing spaces from your filenames`
-                )
-            }
-
-            all.push(filename)
-            switch (file.status as FileStatus) {
-                case 'added':
-                    added.push(filename)
-                    addedModified.push(filename)
-                    break
-                case 'modified':
-                    modified.push(filename)
-                    addedModified.push(filename)
-                    break
-                case 'removed':
-                    removed.push(filename)
-                    break
-                case 'renamed':
-                    renamed.push(filename)
-                    break
-                default:
-                    core.setFailed(
-                        `One of your files includes an unsupported file status '${file.status}',` +
-                            "expected 'added', 'modified', 'removed', or 'renamed'."
-                    )
-            }
+            allFiles.push(filename)
         }
+
+        // Filter files by extension
+        const filteredFiles = filterFilesByExtension(allFiles, extList)
 
         // Format the arrays of changed files.
-        let allFormatted: string
-        let addedFormatted: string
-        let modifiedFormatted: string
-        let removedFormatted: string
-        let renamedFormatted: string
-        let addedModifiedFormatted: string
-
-        switch (format) {
-            case 'spaced':
-                // If any of the filenames have a space in them, then fail the step.
-                for (const file of all) {
-                    if (file.includes(' '))
-                        core.setFailed(
-                            `One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`
-                        )
-                }
-                allFormatted = all.join(' ')
-                addedFormatted = added.join(' ')
-                modifiedFormatted = modified.join(' ')
-                removedFormatted = removed.join(' ')
-                renamedFormatted = renamed.join(' ')
-                addedModifiedFormatted = addedModified.join(' ')
-                break
-            case 'json':
-                allFormatted = JSON.stringify(all)
-                addedFormatted = JSON.stringify(added)
-                modifiedFormatted = JSON.stringify(modified)
-                removedFormatted = JSON.stringify(removed)
-                renamedFormatted = JSON.stringify(renamed)
-                addedModifiedFormatted = JSON.stringify(addedModified)
-                break
-        }
-
-        // Log the output values.
-        core.info(`All: ${allFormatted}`)
-        core.info(`Added: ${addedFormatted}`)
-        core.info(`Modified: ${modifiedFormatted}`)
-        core.info(`Removed: ${removedFormatted}`)
-        core.info(`Renamed: ${renamedFormatted}`)
-        core.info(`Added or modified: ${addedModifiedFormatted}`)
+        const allFormatted: string = JSON.stringify(filteredFiles)
 
         // Set step output context.
-        core.setOutput('all', allFormatted)
-        core.setOutput('added', addedFormatted)
-        core.setOutput('modified', modifiedFormatted)
-        core.setOutput('removed', removedFormatted)
-        core.setOutput('renamed', renamedFormatted)
-        core.setOutput('added_modified', addedModifiedFormatted)
-
-        // For backwards-compatibility
-        core.setOutput('deleted', removedFormatted)
-
+        core.setOutput('files', allFormatted)
     } catch (error) {
         let errorMessage = 'Failed'
         if (error instanceof Error) {

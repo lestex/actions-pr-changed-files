@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      - releases/*
 
 jobs:
   debug:
@@ -22,32 +21,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
-
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-
-      - name: Dump runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT"
-
-      - name: Dump strategy context
-        env:
-          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        run: echo "$STRATEGY_CONTEXT"
-
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT"
-
+  
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -92,9 +66,9 @@ jobs:
 
       - name: Print steps context output
         run: |
-          echo 'steps.files.outputs.all=${{ steps.files.outputs.all }}'
-          echo 'steps.files.outputs.added=${{ steps.files.outputs.added }}'
-          echo 'steps.files.outputs.modified=${{ steps.files.outputs.modified }}'
-          echo 'steps.files.outputs.removed=${{ steps.files.outputs.removed }}'
-          echo 'steps.files.outputs.renamed=${{ steps.files.outputs.renamed }}'
-          echo 'steps.files.outputs.added_modified=${{ steps.files.outputs.added_modified }}'
+          echo ${{ steps.files.outputs.files }}
+
+      - name: Print shas
+        run: |
+          echo "Base: ${{ github.event.pull_request.base.sha }}"
+          echo "Base: ${{ github.event.pull_request.head.sha }}"
