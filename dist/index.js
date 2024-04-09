@@ -51,6 +51,7 @@ function run() {
             const page = core.getInput('per-page', { required: true });
             let owner = core.getInput('owner');
             owner = owner ? owner : github_1.context.repo.owner;
+            core.info(`Context: ${JSON.stringify(github_1.context)}`);
             let encoding = core.getInput('result-encoding');
             encoding = encoding ? encoding : 'json';
             // Create GitHub client with the token.

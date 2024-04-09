@@ -12,6 +12,8 @@ async function run(): Promise<void> {
         let owner = core.getInput('owner')
         owner = owner ? owner : context.repo.owner
 
+        core.info(`Context: ${JSON.stringify(context)}`)
+
         let encoding = core.getInput('result-encoding')
         encoding = encoding ? encoding : 'json'
 
