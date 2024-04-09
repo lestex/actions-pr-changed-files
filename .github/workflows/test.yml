@@ -33,11 +33,21 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn
+          npm install
+
+      - name: ls before
+        run: |
+          ls -l
+          ls -l dist/
 
       - name: Clean, build, format, lint, package, and test
         run: |
-          yarn all
+          npm run all
+
+      - name: ls after
+        run: |
+            git status
+            ls -l dist/
 
       - name: Check if packaged properly
         run: |
