@@ -13,7 +13,7 @@ jobs:
       files: ${{ steps.changed-files.outputs.files }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - name: Run the action
         id: changed-files
