@@ -27,9 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3.7.0
         with:
           node-version: '19'
 
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run the action
         id: files
@@ -67,3 +67,5 @@ jobs:
       - name: Print steps context output
         run: |
           echo ${{ steps.files.outputs.files }}
+          echo ${{ steps.files.outputs.sha }}
+          echo ${{ steps.files.outputs.msg }}
