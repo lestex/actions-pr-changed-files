@@ -13,13 +13,11 @@ async function run(): Promise<void> {
 
         // Ensure that the format parameter is set properly.
         if (format !== 'spaced' && format !== 'json') {
-            core.setFailed(
-                `Format must be one of 'string-delimited' or 'json', got '${format}'.`
-            )
+            core.setFailed(`Format must be one of 'spaced' or 'json', got '${format}'`)
         }
 
         // Debug log the payload.
-        core.debug(`Payload keys: ${Object.keys(context.payload)}`)
+        core.info(`Payload keys: ${Object.keys(context.payload)}`)
 
         // Get event name.
         const eventName = context.eventName
@@ -39,8 +37,7 @@ async function run(): Promise<void> {
                 break
             default:
                 core.setFailed(
-                    `This action only supports pull requests and pushes, ${context.eventName} events are not supported. ` +
-                        "Please submit an issue on this action's GitHub repo if you believe this in correct."
+                    `This action only supports pull requests and pushes, ${context.eventName} events are not supported.`
                 )
         }
 
@@ -51,8 +48,7 @@ async function run(): Promise<void> {
         // Ensure that the base and head properties are set on the payload.
         if (!base || !head) {
             core.setFailed(
-                `The base and head commits are missing from the payload for this ${context.eventName} event. ` +
-                    "Please submit an issue on this action's GitHub repo."
+                `The base and head commits are missing from the payload for this ${context.eventName} event`
             )
 
             // // To satisfy TypeScript, even though this is unreachable.
@@ -72,16 +68,14 @@ async function run(): Promise<void> {
         // Ensure that the request was successful.
         if (response.status !== 200) {
             core.setFailed(
-                `The GitHub API for comparing the base and head commits for this ${context.eventName} event returned ${response.status}, expected 200. ` +
-                    "Please submit an issue on this action's GitHub repo."
+                `The GitHub API for comparing the base and head commits for this ${context.eventName} event returned ${response.status}, expected 200`
             )
         }
 
         // Ensure that the head commit is ahead of the base commit.
         if (response.data.status !== 'ahead') {
             core.setFailed(
-                `The head commit for this ${context.eventName} event is not ahead of the base commit. ` +
-                    "Please submit an issue on this action's GitHub repo."
+                `The head commit for this ${context.eventName} event is not ahead of the base commit`
             )
         }
 
@@ -100,8 +94,7 @@ async function run(): Promise<void> {
             // then fail the step.
             if (format === 'spaced' && filename.includes(' ')) {
                 core.setFailed(
-                    `One of your files includes a space. Consider using a different output format or removing spaces from your filenames. ` +
-                        "Please submit an issue on this action's GitHub repo."
+                    `One of your files includes a space. Consider using a different output format or removing spaces from your filenames`
                 )
             }
 
